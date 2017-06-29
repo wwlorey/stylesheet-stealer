@@ -1,6 +1,15 @@
 import sys
 import os.path
 
+
+# Returns an empty string if char is a space, returns space (' ') otherwise
+def insertSpaceCheck(char):
+    if char is ' ':
+        return ''
+    else:
+        return ' '
+
+
 # Read command line arguments
 if len(sys.argv) == 3: # All expected arguments are present
     fileInName = sys.argv[1]
@@ -33,32 +42,77 @@ fileOut = open(fileOutName, 'w')
 cssText = fileIn.read().replace('\n', '').replace('\t', '')
 
 
+# Stack (really a list being used as a stack) that keeps track of what curly
+# braces have been encountered
+braceStack = []
+
+# Stack for parentheses
+parenthStack = []
+
+# Bool used in keeping track of whether an '@' has been seen in the current context
+seenAtSymbol = False
+
+
 # Iterate through the input file string and output formatted CSS to the output file
 textLength = len(cssText)
 for i in range(0, textLength):
+
     # Get the current char and next char in the input file string
     char = cssText[i]
     if i + 1 >= textLength:
         nextInputChar = None
     else:
         nextInputChar = cssText[i + 1]
+    if i - 1 < 0:
+        prevInputChar = None
+    else:
+        prevInputChar = cssText[i - 1]
+
+
+    nextOutputChar = ''
+    prevOutputChar = ''
+
 
     # Process characters
 
-    # Commas and colons
-    if char == ',' or char == ':':
-        prevOutputChar = ''
-        nextOutputChar = ' '
+    # @ symbol
+    if char == '@':
+        seenAtSymbol = True
+
+    # Commas
+    elif char == ',':
+        nextOutputChar = insertSpaceCheck(nextInputChar)
+
+    # Colons
+    elif char == ':':
+        # This block checks to see if the current char is within parenthesis OR
+        # curly braces as well as in a media query (including some stipulations)
+        # before inserting a space after the colon
+        if len(parenthStack) > 0 or len(braceStack) > 0:
+            if not seenAtSymbol: # Not currently in a media query
+                nextOutputChar = insertSpaceCheck(nextInputChar)
+            else: # Currently in the media query
+                if len(braceStack) % 2 == 0: # The char is within attr. assignment in the media query
+                    nextOutputChar = insertSpaceCheck(nextInputChar)
+
+    # Opening parentheses
+    elif char == '(':
+        parenthStack.append(char)
 
     # Opening curly brackets
     elif char == '{':
-        prevOutputChar = ' '
+        prevOutputChar = insertSpaceCheck(prevInputChar)
         nextOutputChar = '\n'
+        braceStack.append(char)
 
     # Semicolons
     elif char == ';':
-        prevOutputChar = ''
-        nextOutputChar = '\n'
+        if nextInputChar != '}':
+            nextOutputChar = '\n'
+
+    # Closing parentheses
+    elif char == ')':
+        parenthStack.pop() # Remove the last parenthesis
 
     # Closing curly brackets
     elif char == '}':
@@ -68,10 +122,11 @@ for i in range(0, textLength):
             prevOutputChar = '\n'
             nextOutputChar = '\n\n'
 
-    # Everyting else
-    else:
-        nextOutputChar = ''
-        prevOutputChar = ''
+        braceStack.pop() # Remove the last brace in the stack
+        if len(braceStack) == 0 and seenAtSymbol:
+            # Clear the '@' flag
+            seenAtSymbol = False
+
 
     # Write the current character(s) to the output file
     fileOut.write("%s%s%s" % (prevOutputChar, char, nextOutputChar))
