@@ -2,12 +2,16 @@ import sys
 import os.path
 
 # Read command line arguments
-if len(sys.argv) == 3:
+if len(sys.argv) == 3: # All expected arguments are present
     fileInName = sys.argv[1]
     fileOutName = sys.argv[2]
-else:
-    # Default to the following files if the wrong number of arguments
-    # is passed
+elif len(sys.argv) == 2: # No output file was given
+    fileInName = sys.argv[1]
+
+    # Defult to a standard output file
+    fileOutName = 'formatted.css'
+else: # Neither input or output file was given, or something else weird happened
+    # Default to standard input/output files
     fileInName = 'unformatted.css'
     fileOutName = 'formatted.css'
 
@@ -16,7 +20,7 @@ else:
 if(os.path.isfile(fileInName)):
     fileIn = open(fileInName, 'r')
 else:
-    print("\nPlease include the input file as a parameter. See the readme for detials\n")
+    print("\nPlease see the readme for instructions on command line arguments.\n")
 
     # End the program
     sys.exit()
@@ -56,5 +60,5 @@ for pos in range(0, length):
 fileIn.close()
 fileOut.close()
 
-# The program is finished
+# The program is completed
 print("\nDone!\n")
