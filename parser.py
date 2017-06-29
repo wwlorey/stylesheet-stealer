@@ -52,7 +52,8 @@ parenthStack = []
 # Bool used in keeping track of whether an '@' has been seen in the current context
 seenAtSymbol = False
 
-# Bool used in formatting curly braces in media queries
+# Bool used in formatting curly braces in media queries. It specifies when a closing
+# curly brace needs tab(s) before it
 insertTabBeforeBrace = False
 
 
@@ -73,10 +74,8 @@ for i in range(0, textLength):
     else:
         prevInputChar = cssText[i - 1]
 
-
     nextOutputChar = ''
     prevOutputChar = ''
-
 
     # Process characters
 
@@ -143,8 +142,6 @@ for i in range(0, textLength):
 
             if not (nextInputChar == '}'):
                 nextOutputChar = '\n\n\t'
-
-
         else:
             if nextInputChar == '}':
                 prevOutputChar = '\n'
