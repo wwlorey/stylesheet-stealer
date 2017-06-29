@@ -140,6 +140,11 @@ for i in range(0, textLength):
         if insertTabBeforeBrace:
             prevOutputChar = '\n\t'
             insertTabBeforeBrace = False
+
+            if not (nextInputChar == '}'):
+                nextOutputChar = '\n\n\t'
+
+
         else:
             if nextInputChar == '}':
                 prevOutputChar = '\n'
