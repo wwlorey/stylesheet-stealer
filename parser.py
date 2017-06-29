@@ -52,26 +52,30 @@ parenthStack = []
 # Bool used in keeping track of whether an '@' has been seen in the current context
 seenAtSymbol = False
 
+# Bool used in formatting curly braces in media queries. It specifies when a closing
+# curly brace needs tab(s) before it
+insertTabBeforeBrace = False
+
 
 # Iterate through the input file string and output formatted CSS to the output file
 textLength = len(cssText)
 for i in range(0, textLength):
 
-    # Get the current char and next char in the input file string
+    # Get the prev char, current char, and next char in the input file string
     char = cssText[i]
+
     if i + 1 >= textLength:
         nextInputChar = None
     else:
         nextInputChar = cssText[i + 1]
+
     if i - 1 < 0:
         prevInputChar = None
     else:
         prevInputChar = cssText[i - 1]
 
-
     nextOutputChar = ''
     prevOutputChar = ''
-
 
     # Process characters
 
@@ -101,14 +105,28 @@ for i in range(0, textLength):
 
     # Opening curly brackets
     elif char == '{':
-        prevOutputChar = insertSpaceCheck(prevInputChar)
-        nextOutputChar = '\n'
         braceStack.append(char)
+
+        # Check to see if the next line needs to be indented twice (it is in a media query
+        # in the attribute assignment section)
+        if seenAtSymbol and (len(braceStack) % 2 == 0):
+            nextOutputChar = '\n\t\t'
+        else:
+            nextOutputChar = '\n\t'
+
+        prevOutputChar = insertSpaceCheck(prevInputChar)
 
     # Semicolons
     elif char == ';':
         if nextInputChar != '}':
-            nextOutputChar = '\n'
+            if seenAtSymbol:
+                nextOutputChar = '\n\t\t'
+            else:
+                nextOutputChar = '\n\t'
+        else:
+            # Tab the next ending brace if it's in a media query
+            if seenAtSymbol:
+                insertTabBeforeBrace = True
 
     # Closing parentheses
     elif char == ')':
@@ -116,16 +134,28 @@ for i in range(0, textLength):
 
     # Closing curly brackets
     elif char == '}':
-        if nextInputChar == '}':
-            prevOutputChar = '\n'
-        else:
-            prevOutputChar = '\n'
-            nextOutputChar = '\n\n'
-
         braceStack.pop() # Remove the last brace in the stack
-        if len(braceStack) == 0 and seenAtSymbol:
-            # Clear the '@' flag
-            seenAtSymbol = False
+
+        if insertTabBeforeBrace:
+            prevOutputChar = '\n\t'
+            insertTabBeforeBrace = False
+
+            if not (nextInputChar == '}'):
+                nextOutputChar = '\n\n\t'
+        else:
+            if nextInputChar == '}':
+                prevOutputChar = '\n'
+            else:
+                prevOutputChar = '\n'
+                nextOutputChar = '\n\n'
+
+            if len(braceStack) == 0 and seenAtSymbol:
+                # Clear the '@' flag
+                seenAtSymbol = False
+
+    # Endings of selector fields in media queries
+    elif nextInputChar == '}' and seenAtSymbol and not (len(braceStack) == 1):
+        insertTabBeforeBrace = True
 
 
     # Write the current character(s) to the output file
