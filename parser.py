@@ -102,13 +102,13 @@ for i in range(0, textLength):
     # Opening curly brackets
     elif char == '{':
         prevOutputChar = insertSpaceCheck(prevInputChar)
-        nextOutputChar = '\n'
+        nextOutputChar = '\n\t'
         braceStack.append(char)
 
     # Semicolons
     elif char == ';':
         if nextInputChar != '}':
-            nextOutputChar = '\n'
+            nextOutputChar = '\n\t'
 
     # Closing parentheses
     elif char == ')':
