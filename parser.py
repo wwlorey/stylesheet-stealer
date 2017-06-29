@@ -1,10 +1,26 @@
 import sys
+import os.path
 
 # Read command line arguments
-progName, fileInName, fileOutName = sys.argv
+if len(sys.argv) == 3:
+    fileInName = sys.argv[1]
+    fileOutName = sys.argv[2]
+else:
+    # Default to the following files if the wrong number of arguments
+    # is passed
+    fileInName = 'unformatted.css'
+    fileOutName = 'formatted.css'
 
 # Open the input & output files
-fileIn = open(fileInName, 'r')
+# Check to make sure the input file exists
+if(os.path.isfile(fileInName)):
+    fileIn = open(fileInName, 'r')
+else:
+    print("\nPlease include the input file as a parameter. See the readme for detials\n")
+
+    # End the program
+    sys.exit()
+
 fileOut = open(fileOutName, 'w')
 
 # Remove all newlines & tabs from the input as a safety measure
@@ -39,3 +55,6 @@ for pos in range(0, length):
 
 fileIn.close()
 fileOut.close()
+
+# The program is finished
+print("\nDone!\n")
